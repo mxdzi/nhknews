@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.4
+#!/usr/bin/env python3.5
 """Download news from http://www3.nhk.or.jp/news/easy/index.html"""
 
 import os
