@@ -1,10 +1,12 @@
 #!/usr/bin/env python3.11
 """Download news from http://www3.nhk.or.jp/news/easy/index.html"""
-
+import argparse
 import os
 import requests
 import lxml.html
 import lxml.etree
+
+__version__ = 1.1
 
 
 def get_news_list():
@@ -76,8 +78,11 @@ def main():
                     print(" ERR ", end='\n')
 
     else:
-        print("Error downloadig news!")
+        print("Error downloading news!")
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(prog="NHK News Web Easy Downloader")
+    parser.add_argument('--version', '-V', action='version', version=f"%(prog)s {__version__}")
+    parser.parse_args()
     main()
