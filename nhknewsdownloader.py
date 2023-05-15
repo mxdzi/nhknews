@@ -29,7 +29,7 @@ def prepare_html(article, news):
     html_string.append('\t</head>\n\t<body>\n')
     html_string.append('\t\t<ul>\n')
     html_string.append('\t\t\t<li>Title: ' + news['title_with_ruby'] + '</li>\n')
-    html_string.append('\t\t\t<li>Priority: ' + news['news_priority_number'] + '</li>\n')
+    html_string.append('\t\t\t<li>Priority: ' + str(news['top_priority_number']) + '</li>\n')
     html_string.append('\t\t\t<li>Date: ' + news['news_prearranged_time'] + '</li>\n')
     html_string.append('\t\t\t<li>Id: ' + news['news_id'] + '</li>\n')
     html_string.append('\t\t</ul>\n')
@@ -57,8 +57,8 @@ def main():
             print("Saving: " + date)
             os.makedirs(os.path.join(save_dir, date), exist_ok=True)
             for n in news:
-                print("Saving:\t\tNews " + n['news_priority_number'], end='')
-                file_html = os.path.join(save_dir, date, n['news_priority_number'] + '.html')
+                print("Saving:\t\tNews " + str(n['top_priority_number']), end='')
+                file_html = os.path.join(save_dir, date, str(n['top_priority_number']) + '.html')
                 try:
                     url = "http://www3.nhk.or.jp/news/easy/" + n['news_id'] + "/" + n['news_id'] + ".html"
                     parsed_html = prepare_html(lxml.html.parse(url).getroot().cssselect('#js-article-body p'), n)
@@ -68,7 +68,7 @@ def main():
                     response = requests.get("http://www3.nhk.or.jp/news/easy/" + n['news_id'] + "/" + n['news_id'] + ".out.dic")
                     response.encoding = 'utf-8'
                     if response.ok:
-                        file_dic = os.path.join(save_dir, date, n['news_priority_number'] + '.dic.js')
+                        file_dic = os.path.join(save_dir, date, str(n['top_priority_number']) + '.dic.js')
                         with open(file_dic, 'w+', encoding='utf-8') as handle:
                             handle.write(response.text)
                             print("dic")
