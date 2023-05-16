@@ -8,6 +8,11 @@ import lxml.etree
 
 __version__ = 1.1
 
+# config
+SAVE_DIR = "nhknews_dump"
+NEWS_URL = "http://www3.nhk.or.jp/news/easy/{news_id}/{news_id}"
+NEWS_HTML_URL = f"{NEWS_URL}.html"
+NEWS_DICT_URL = f"{NEWS_URL}.out.dic"
 
 def get_news_list():
     """Download news list"""
@@ -47,30 +52,29 @@ def prepare_html(article, news):
 
 
 def main():
-    """Download all news and dictionary files to 'save_dir' folder"""
+    """Download all news and dictionary files to 'SAVE_DIR' folder"""
 
-    # config
-    save_dir = "nhknews_dump"
-    os.makedirs(save_dir, exist_ok=True)
+    os.makedirs(SAVE_DIR, exist_ok=True)
 
     news_list = get_news_list()
     if news_list:
         for date, news in news_list:
             print("Saving: " + date)
-            os.makedirs(os.path.join(save_dir, date), exist_ok=True)
+            os.makedirs(os.path.join(SAVE_DIR, date), exist_ok=True)
             for n in news:
                 print("Saving:\t\tNews " + str(n['top_priority_number']), end='')
-                file_html = os.path.join(save_dir, date, str(n['top_priority_number']) + '.html')
+                file_html = os.path.join(SAVE_DIR, date, str(n['top_priority_number']) + '.html')
                 try:
-                    url = "http://www3.nhk.or.jp/news/easy/" + n['news_id'] + "/" + n['news_id'] + ".html"
+                    url = NEWS_HTML_URL.format(news_id=n['news_id'])
                     parsed_html = prepare_html(lxml.html.parse(url).getroot().cssselect('#js-article-body p'), n)
                     with open(file_html, 'w+', encoding='utf-8', newline='\r\n') as handle:
                         handle.writelines(parsed_html)
                         print(" html ", end='')
-                    response = requests.get("http://www3.nhk.or.jp/news/easy/" + n['news_id'] + "/" + n['news_id'] + ".out.dic")
+                    url = NEWS_DICT_URL.format(news_id=n['news_id'])
+                    response = requests.get(url)
                     response.encoding = 'utf-8'
                     if response.ok:
-                        file_dic = os.path.join(save_dir, date, str(n['top_priority_number']) + '.dic.js')
+                        file_dic = os.path.join(SAVE_DIR, date, str(n['top_priority_number']) + '.dic.js')
                         with open(file_dic, 'w+', encoding='utf-8') as handle:
                             handle.write(response.text)
                             print("dic")
