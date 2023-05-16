@@ -6,7 +6,7 @@ import requests
 import lxml.html
 import lxml.etree
 
-__version__ = 1.1
+__version__ = 1.2
 
 # config
 SAVE_DIR = "nhknews_dump"
@@ -14,13 +14,14 @@ NEWS_URL = "http://www3.nhk.or.jp/news/easy/{news_id}/{news_id}"
 NEWS_HTML_URL = f"{NEWS_URL}.html"
 NEWS_DICT_URL = f"{NEWS_URL}.out.dic"
 
-def get_news_list():
+
+def get_news_list(days):
     """Download news list"""
 
     response = requests.get("http://www3.nhk.or.jp/news/easy/news-list.json")
 
     if response.ok:
-        return sorted(response.json()[0].items())
+        return sorted(response.json()[0].items())[-days if days else None:]
     else:
         return None
 
@@ -51,12 +52,12 @@ def prepare_html(article, news):
     return html_string
 
 
-def main():
+def main(args):
     """Download all news and dictionary files to 'SAVE_DIR' folder"""
 
     os.makedirs(SAVE_DIR, exist_ok=True)
 
-    news_list = get_news_list()
+    news_list = get_news_list(args.days)
     if news_list:
         for date, news in news_list:
             print("Saving: " + date)
@@ -87,6 +88,7 @@ def main():
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog="NHK News Web Easy Downloader")
+    parser.add_argument('--days', '-d', action='store', type=int, help='Number of days to download since today')
     parser.add_argument('--version', '-V', action='version', version=f"%(prog)s {__version__}")
-    parser.parse_args()
-    main()
+    args = parser.parse_args()
+    main(args)
