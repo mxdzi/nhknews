@@ -63,26 +63,33 @@ def main(days, save_path):
             os.makedirs(os.path.join(save_path, date), exist_ok=True)
             for n in news:
                 print("Saving:\t\tNews " + str(n['top_priority_number']), end='')
-                file_html = os.path.join(save_path, date, str(n['top_priority_number']) + '.html')
                 try:
-                    url = NEWS_HTML_URL.format(news_id=n['news_id'])
-                    parsed_html = prepare_html(lxml.html.parse(url).getroot().cssselect('#js-article-body p'), n)
-                    with open(file_html, 'w+', encoding='utf-8', newline='\r\n') as handle:
-                        handle.writelines(parsed_html)
-                        print(" html ", end='')
-                    url = NEWS_DICT_URL.format(news_id=n['news_id'])
-                    response = requests.get(url)
+                    url_news = NEWS_HTML_URL.format(news_id=n['news_id'])
+                    url_dict = NEWS_DICT_URL.format(news_id=n['news_id'])
+
+                    file_name = os.path.join(save_path, date, str(n['top_priority_number']))
+                    file_html = file_name + '.html'
+                    file_dic = file_name + '.dic.js'
+
+                    parsed_html = prepare_html(lxml.html.parse(url_news).getroot().cssselect('#js-article-body p'), n)
+                    write_file(file_html, parsed_html)
+                    print(" html ", end='')
+
+                    response = requests.get(url_dict)
                     response.encoding = 'utf-8'
                     if response.ok:
-                        file_dic = os.path.join(save_path, date, str(n['top_priority_number']) + '.dic.js')
-                        with open(file_dic, 'w+', encoding='utf-8') as handle:
-                            handle.write(response.text)
-                            print("dic")
+                        write_file(file_dic, response.text)
+                        print("dic")
+
                 except OSError as err:
                     print(" ERR ", end='\n')
-
     else:
         print("Error downloading news!")
+
+
+def write_file(filename, content):
+    with open(filename, 'w+', encoding='utf-8') as handle:
+        handle.writelines(content)
 
 
 if __name__ == '__main__':
