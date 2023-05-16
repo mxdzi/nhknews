@@ -6,10 +6,9 @@ import requests
 import lxml.html
 import lxml.etree
 
-__version__ = 1.2
+__version__ = 1.3
 
 # config
-SAVE_DIR = "nhknews_dump"
 NEWS_URL = "http://www3.nhk.or.jp/news/easy/{news_id}/{news_id}"
 NEWS_HTML_URL = f"{NEWS_URL}.html"
 NEWS_DICT_URL = f"{NEWS_URL}.out.dic"
@@ -52,19 +51,19 @@ def prepare_html(article, news):
     return html_string
 
 
-def main(args):
+def main(days, save_path):
     """Download all news and dictionary files to 'SAVE_DIR' folder"""
 
-    os.makedirs(SAVE_DIR, exist_ok=True)
+    os.makedirs(save_path, exist_ok=True)
 
-    news_list = get_news_list(args.days)
+    news_list = get_news_list(days)
     if news_list:
         for date, news in news_list:
             print("Saving: " + date)
-            os.makedirs(os.path.join(SAVE_DIR, date), exist_ok=True)
+            os.makedirs(os.path.join(save_path, date), exist_ok=True)
             for n in news:
                 print("Saving:\t\tNews " + str(n['top_priority_number']), end='')
-                file_html = os.path.join(SAVE_DIR, date, str(n['top_priority_number']) + '.html')
+                file_html = os.path.join(save_path, date, str(n['top_priority_number']) + '.html')
                 try:
                     url = NEWS_HTML_URL.format(news_id=n['news_id'])
                     parsed_html = prepare_html(lxml.html.parse(url).getroot().cssselect('#js-article-body p'), n)
@@ -75,7 +74,7 @@ def main(args):
                     response = requests.get(url)
                     response.encoding = 'utf-8'
                     if response.ok:
-                        file_dic = os.path.join(SAVE_DIR, date, str(n['top_priority_number']) + '.dic.js')
+                        file_dic = os.path.join(save_path, date, str(n['top_priority_number']) + '.dic.js')
                         with open(file_dic, 'w+', encoding='utf-8') as handle:
                             handle.write(response.text)
                             print("dic")
@@ -88,7 +87,8 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog="NHK News Web Easy Downloader")
+    parser.add_argument('--path', '-p', action='store', default='nhknews_dump', help='Directory name to save news')
     parser.add_argument('--days', '-d', action='store', type=int, help='Number of days to download since today')
     parser.add_argument('--version', '-V', action='version', version=f"%(prog)s {__version__}")
     args = parser.parse_args()
-    main(args)
+    main(args.days, args.path)

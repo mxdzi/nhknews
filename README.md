@@ -4,10 +4,14 @@ A simple Python script for downloading news and dictionary files from http://www
 
 ## How to use
 
-Download all news to `SAVE_DIR`:
+Download all news to `nhknews_dump`:
 
     nhknewsdownloader.py
 
 Limit downloading to news from last 30 days:
 
     nhknewsdownloader.py -d 30
+
+Options:
+
+`--path` - set download directory
