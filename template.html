@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>${title_with_ruby}</title>
+	</head>
+	<body>
+		<ul>
+			<li>Title: ${title_with_ruby}</li>
+			<li>Priority: ${top_priority_number}</li>
+			<li>Date: ${news_prearranged_time}</li>
+			<li>Id: ${news_id}</li>
+		</ul>
+		<ol>
+		% for line in article:
+			<li>${line}</li>
+		% endfor
+		</ol>
+	</body>
+</html>

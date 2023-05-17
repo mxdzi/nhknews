@@ -5,8 +5,9 @@ import os
 import requests
 import lxml.html
 import lxml.etree
+from mako.template import Template
 
-__version__ = 1.3
+__version__ = 1.4
 
 # config
 NEWS_URL = "http://www3.nhk.or.jp/news/easy/{news_id}/{news_id}"
@@ -27,28 +28,16 @@ def get_news_list(days):
 
 def prepare_html(article, news):
     """Create news HTML template"""
+    template = Template(filename='template.html')
+    lines = [line for p in article if (line := lxml.etree.tostring(p, encoding='utf8').decode('utf8').strip()[3:-4])]
 
-    html_string = []
-
-    html_string.append('<!DOCTYPE html>\n<html>\n\t<head>\n')
-    html_string.append('\t\t<meta http-equiv="Content-Type" content="text/html; charset=utf-8">\n')
-    html_string.append('\t\t<title>' + news['title_with_ruby'] + '</title>\n')
-    html_string.append('\t</head>\n\t<body>\n')
-    html_string.append('\t\t<ul>\n')
-    html_string.append('\t\t\t<li>Title: ' + news['title_with_ruby'] + '</li>\n')
-    html_string.append('\t\t\t<li>Priority: ' + str(news['top_priority_number']) + '</li>\n')
-    html_string.append('\t\t\t<li>Date: ' + news['news_prearranged_time'] + '</li>\n')
-    html_string.append('\t\t\t<li>Id: ' + news['news_id'] + '</li>\n')
-    html_string.append('\t\t</ul>\n')
-    html_string.append('\t\t<ol>\n')
-
-    for p in article:
-        if len(lxml.etree.tostring(p, encoding='utf8').decode('utf8').strip()[3:-4]) > 0:
-            html_string.append('\t\t\t<li>' + lxml.etree.tostring(p, encoding='utf8').decode('utf8').strip()[3:-4] + '</li>\n')
-
-    html_string.append('\t\t</ol>\n')
-    html_string.append('\t</body>\n</html>')
-    return html_string
+    return template.render(
+        title_with_ruby=news['title_with_ruby'],
+        top_priority_number=news['top_priority_number'],
+        news_prearranged_time=news['news_prearranged_time'],
+        news_id=news['news_id'],
+        article=lines
+    )
 
 
 def main(days, save_path):
