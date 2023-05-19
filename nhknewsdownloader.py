@@ -20,36 +20,14 @@ class NHKNewsdl:
         self.save_path = save_path
 
     def download(self):
-        os.makedirs(self.save_path, exist_ok=True)
-
         news_list = self._get_news_list()
         if news_list:
+            os.makedirs(self.save_path, exist_ok=True)
             for date, news in news_list:
                 print("Saving: " + date)
                 os.makedirs(os.path.join(self.save_path, date), exist_ok=True)
-                for n in news:
-                    print("Saving:\t\tNews " + str(n['top_priority_number']), end='')
-                    try:
-                        url_news = self.NEWS_HTML_URL.format(news_id=n['news_id'])
-                        url_dict = self.NEWS_DICT_URL.format(news_id=n['news_id'])
-
-                        file_name = os.path.join(self.save_path, date, str(n['top_priority_number']))
-                        file_html = file_name + '.html'
-                        file_dic = file_name + '.dic.js'
-
-                        parsed_html = self._prepare_html(
-                            lxml.html.parse(url_news).getroot().cssselect('#js-article-body p'), n)
-                        self._write_file(file_html, parsed_html)
-                        print(" html ", end='')
-
-                        response = requests.get(url_dict)
-                        response.encoding = 'utf-8'
-                        if response.ok:
-                            self._write_file(file_dic, response.text)
-                            print("dic")
-
-                    except OSError as err:
-                        print(" ERR ", end='\n')
+                for post in news:
+                    self._get_post(post, date)
         else:
             print("Error downloading news!")
 
@@ -59,6 +37,29 @@ class NHKNewsdl:
             return sorted(response.json()[0].items())[-self.days if self.days else None:]
         else:
             return None
+
+    def _get_post(self, post, date):
+        print("Saving:\t\tNews " + str(post['top_priority_number']), end='')
+        try:
+            url_news = self.NEWS_HTML_URL.format(news_id=post['news_id'])
+            url_dict = self.NEWS_DICT_URL.format(news_id=post['news_id'])
+
+            file_name = os.path.join(self.save_path, date, str(post['top_priority_number']))
+            file_html = file_name + '.html'
+            file_dic = file_name + '.dic.js'
+
+            parsed_html = self._prepare_html(
+                lxml.html.parse(url_news).getroot().cssselect('#js-article-body p'), post)
+            self._write_file(file_html, parsed_html)
+            print(" html ", end='')
+
+            response = requests.get(url_dict)
+            response.encoding = 'utf-8'
+            if response.ok:
+                self._write_file(file_dic, response.text)
+                print("dic")
+        except OSError as err:
+            print(" ERR ", err, end='\n')
 
     @staticmethod
     def _prepare_html(article, news):
