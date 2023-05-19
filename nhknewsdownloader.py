@@ -24,7 +24,7 @@ class NHKNewsdl:
         if news_list:
             os.makedirs(self.save_path, exist_ok=True)
             for date, news in news_list:
-                print("Saving: " + date)
+                print(f"Saving: {date}")
                 os.makedirs(os.path.join(self.save_path, date), exist_ok=True)
                 for post in news:
                     self._get_post(post, date)
@@ -33,13 +33,14 @@ class NHKNewsdl:
 
     def _get_news_list(self):
         response = requests.get("http://www3.nhk.or.jp/news/easy/news-list.json")
+        limit = -self.days if self.days else None
         if response.ok:
-            return sorted(response.json()[0].items())[-self.days if self.days else None:]
+            return sorted(response.json()[0].items())[limit:]
         else:
             return None
 
     def _get_post(self, post, date):
-        print("Saving:\t\tNews " + str(post['top_priority_number']), end='')
+        print(f"Saving:\t\tNews {post['top_priority_number']}", end='')
         try:
             url_news = self.NEWS_HTML_URL.format(news_id=post['news_id'])
             url_dict = self.NEWS_DICT_URL.format(news_id=post['news_id'])
