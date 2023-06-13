@@ -1,17 +1,20 @@
 #!/usr/bin/env python3.11
-"""Download news from http://www3.nhk.or.jp/news/easy/index.html"""
+"""Download news from https://www3.nhk.or.jp/news/easy/index.html"""
 import argparse
+import io
 import os
-import requests
-import lxml.html
-import lxml.etree
-from mako.template import Template
 
-__version__ = 1.5
+import lxml.etree
+import lxml.html
+import requests
+from mako.template import Template
+from requests.exceptions import RequestException
+
+__version__ = 1.6
 
 
 class NHKNewsdl:
-    NEWS_URL = "http://www3.nhk.or.jp/news/easy/{news_id}/{news_id}"
+    NEWS_URL = "https://www3.nhk.or.jp/news/easy/{news_id}/{news_id}"
     NEWS_HTML_URL = f"{NEWS_URL}.html"
     NEWS_DICT_URL = f"{NEWS_URL}.out.dic"
 
@@ -32,7 +35,7 @@ class NHKNewsdl:
             print("Error downloading news!")
 
     def _get_news_list(self):
-        response = requests.get("http://www3.nhk.or.jp/news/easy/news-list.json")
+        response = requests.get("https://www3.nhk.or.jp/news/easy/news-list.json")
         limit = -self.days if self.days else None
         if response.ok:
             return sorted(response.json()[0].items())[limit:]
@@ -41,25 +44,31 @@ class NHKNewsdl:
 
     def _get_post(self, post, date):
         print(f"Saving:\t\tNews {post['top_priority_number']}", end='')
-        try:
-            url_news = self.NEWS_HTML_URL.format(news_id=post['news_id'])
-            url_dict = self.NEWS_DICT_URL.format(news_id=post['news_id'])
+        url_news = self.NEWS_HTML_URL.format(news_id=post['news_id'])
+        url_dict = self.NEWS_DICT_URL.format(news_id=post['news_id'])
 
-            file_name = os.path.join(self.save_path, date, str(post['top_priority_number']))
-            file_html = file_name + '.html'
-            file_dic = file_name + '.dic.js'
+        file_name = os.path.join(self.save_path, date, str(post['top_priority_number']))
+        file_html = file_name + '.html'
+        file_dic = file_name + '.dic.js'
+
+        try:
+            response_html = requests.get(url_news)
+            response_html.raise_for_status()
+            response_html.encoding = 'utf-8'
+
+            response_dict = requests.get(url_dict)
+            response_dict.raise_for_status()
+            response_dict.encoding = 'utf-8'
 
             parsed_html = self._prepare_html(
-                lxml.html.parse(url_news).getroot().cssselect('#js-article-body p'), post)
+                lxml.html.parse(io.StringIO(response_html.text)).getroot().cssselect('#js-article-body p'), post)
+
             self._write_file(file_html, parsed_html)
             print(" html ", end='')
+            self._write_file(file_dic, response_dict.text)
+            print("dic")
 
-            response = requests.get(url_dict)
-            response.encoding = 'utf-8'
-            if response.ok:
-                self._write_file(file_dic, response.text)
-                print("dic")
-        except OSError as err:
+        except RequestException as err:
             print(" ERR ", err, end='\n')
 
     @staticmethod
