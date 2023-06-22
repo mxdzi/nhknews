@@ -1,4 +1,3 @@
 requests
-lxml
-cssselect
 Mako
+beautifulsoup4

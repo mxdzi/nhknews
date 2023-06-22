@@ -1,16 +1,14 @@
 #!/usr/bin/env python3.11
 """Download news from https://www3.nhk.or.jp/news/easy/index.html"""
 import argparse
-import io
 import os
 
-import lxml.etree
-import lxml.html
 import requests
+from bs4 import BeautifulSoup
 from mako.template import Template
 from requests.exceptions import RequestException
 
-__version__ = 1.6
+__version__ = 1.7
 
 
 class NHKNewsdl:
@@ -60,8 +58,9 @@ class NHKNewsdl:
             response_dict.raise_for_status()
             response_dict.encoding = 'utf-8'
 
-            parsed_html = self._prepare_html(
-                lxml.html.parse(io.StringIO(response_html.text)).getroot().cssselect('#js-article-body p'), post)
+            soup = BeautifulSoup(response_html.text, "html.parser")
+            article = soup.find('div', id='js-article-body')
+            parsed_html = self._prepare_html(article, post)
 
             self._write_file(file_html, parsed_html)
             print(" html ", end='')
@@ -74,8 +73,7 @@ class NHKNewsdl:
     @staticmethod
     def _prepare_html(article, news):
         template = Template(filename='template.html')
-        lines = [line for p in article if
-                 (line := lxml.etree.tostring(p, encoding='utf8').decode('utf8').strip()[3:-4])]
+        lines = [line for p in article.findChildren('p') if (line := p.decode_contents())]
 
         return template.render(
             title_with_ruby=news['title_with_ruby'],
