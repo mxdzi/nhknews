@@ -89,12 +89,12 @@ class NHKNewsdl:
             handle.writelines(content)
 
 
-def main(args):
+def main(args):  # pragma: no cover
     nhk = NHKNewsdl(args.days, args.path)
     nhk.download()
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     parser = argparse.ArgumentParser(prog="NHK News Web Easy Downloader")
     parser.add_argument('--path', '-p', action='store', default='nhknews_dump', help='Directory name to save news')
     parser.add_argument('--days', '-d', action='store', type=int, help='Number of days to download since today')

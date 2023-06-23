@@ -1,3 +1,5 @@
 requests
 Mako
 beautifulsoup4
+pytest
+pytest-cov
