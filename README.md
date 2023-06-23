@@ -4,7 +4,7 @@ A simple Python script for downloading news and dictionary files from http://www
 
 ## How to use
 
-Download all news to `nhknews_dump`:
+Download all news to the default download directory `nhknews_dump`:
 
     nhknewsdownloader.py
 
@@ -15,3 +15,7 @@ Limit downloading to news from last 30 days:
 Options:
 
 `--path` - set download directory
+
+Run tests with:
+
+   pytest --cov=nhknewsdownloader --cov-report html
