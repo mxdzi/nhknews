@@ -12,6 +12,10 @@ Limit downloading to news from last 30 days:
 
     nhknewsdownloader.py -d 30
 
+Limit downloading to news from selected date:
+
+    nhknewsdownloader.py --date 2024-01-01
+
 Options:
 
 `--path` - set download directory

@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 from mako.template import Template
 from requests.exceptions import RequestException
 
-__version__ = 1.7
+__version__ = 1.8
 
 
 class NHKNewsdl:
