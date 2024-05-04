@@ -16,9 +16,10 @@ class NHKNewsdl:
     NEWS_HTML_URL = f"{NEWS_URL}.html"
     NEWS_DICT_URL = f"{NEWS_URL}.out.dic"
 
-    def __init__(self, days, save_path):
+    def __init__(self, days, save_path, date=None):
         self.days = days
         self.save_path = save_path
+        self.date = date
 
     def download(self):
         news_list = self._get_news_list()
@@ -34,9 +35,13 @@ class NHKNewsdl:
 
     def _get_news_list(self):
         response = requests.get("https://www3.nhk.or.jp/news/easy/news-list.json")
-        limit = -self.days if self.days else None
         if response.ok:
-            return sorted(response.json()[0].items())[limit:]
+            news_list = sorted(response.json()[0].items())
+            if self.date:
+                return [n for n in news_list if n[0] == self.date]
+
+            limit = -self.days if self.days else None
+            return news_list[limit:]
         else:
             return None
 
@@ -90,7 +95,7 @@ class NHKNewsdl:
 
 
 def main(args):  # pragma: no cover
-    nhk = NHKNewsdl(args.days, args.path)
+    nhk = NHKNewsdl(args.days, args.path, args.date)
     nhk.download()
 
 
@@ -98,6 +103,7 @@ if __name__ == '__main__':  # pragma: no cover
     parser = argparse.ArgumentParser(prog="NHK News Web Easy Downloader")
     parser.add_argument('--path', '-p', action='store', default='nhknews_dump', help='Directory name to save news')
     parser.add_argument('--days', '-d', action='store', type=int, help='Number of days to download since today')
+    parser.add_argument('--date', action='store', type=str, help='Date (YYYY-MM-DD format) to download news from')
     parser.add_argument('--version', '-V', action='version', version=f"%(prog)s {__version__}")
     args = parser.parse_args()
     main(args)

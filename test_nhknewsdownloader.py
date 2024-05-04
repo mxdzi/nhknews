@@ -26,6 +26,27 @@ def test_download_post(mock_makedirs, mock_request, capsys):
     assert mock_makedirs.call_count == 2
     assert captured.out == output
 
+@patch('nhknewsdownloader.requests.get')
+@patch('os.makedirs')
+@patch('builtins.open', mock_open())
+def test_download_post_from_date(mock_makedirs, mock_request, capsys):
+    mock_response_list = Mock()
+    mock_response_list.json.return_value = json.loads(data_json)
+
+    mock_response_html = Mock()
+    mock_response_html.text = data_html
+
+    mock_request.side_effect = [mock_response_list, mock_response_html, Mock()]
+
+    nhk = NHKNewsdl(None, 'test_dump', '2022-02-22')
+    nhk.download()
+
+    captured = capsys.readouterr()
+    output = ("Saving: 2022-02-22\n"
+              "Saving:\t\tNews 1 html dic\n")
+    assert mock_makedirs.call_count == 2
+    assert captured.out == output
+
 
 @patch('nhknewsdownloader.requests.get')
 @patch('os.makedirs')
@@ -75,6 +96,14 @@ data_json = """
         "news_prearranged_time": "2023-11-15 16:20:00",
         "news_id": "k10014257381000",
         "title_with_ruby": "\u30a6\u30a7\u30d6\u30b5\u30a4\u30c8\u3067\u30db\u30c6\u30eb\u306e<ruby>\u4e88\u7d04<rt>\u3088\u3084\u304f</rt></ruby>\u3000\u30ab\u30fc\u30c9\u306e<ruby>\u60c5\u5831<rt>\u3058\u3087\u3046\u307b\u3046</rt></ruby>\u3092<ruby>\u76d7<rt>\u306c\u3059</rt></ruby>\u307e\u308c\u308b<ruby>\u88ab\u5bb3<rt>\u3072\u304c\u3044</rt></ruby>"
+      }
+    ],
+    "2022-02-22": [
+      {
+        "top_priority_number": 1,
+        "news_prearranged_time": "2022-02-22 12:00:00",
+        "news_id": "k10099999999999",
+        "title_with_ruby": "Title with Ruby"
       }
     ]
   }
